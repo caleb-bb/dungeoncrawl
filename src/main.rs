@@ -7,8 +7,12 @@ mod map_builder;
 mod player;
 
 //These import all the stuff out of the modules to be used
+// Any module that imports the prelude has access to all of this
 mod prelude {
     pub use bracket_lib::prelude::*;
+    pub use legion::systems::CommandBuffer;
+    pub use legion::world::SubWorld;
+    pub use legion::*;
     pub const SCREEN_WIDTH: i32 = 80;
     pub const SCREEN_HEIGHT: i32 = 50;
     pub const DISPLAY_WIDTH: i32 = SCREEN_WIDTH / 2;

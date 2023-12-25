@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 
+# Generally, once we progress beyond initial planning, we ought to pin our dependencies using the = operator instead of the tilde ~.
+
 bracket-lib = "~0.8.1"
+legion = "=0.3.1"
