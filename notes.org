@@ -13,3 +13,6 @@ A system is a set of behaviors that acts according to the components of a set of
 Systems, generally speaking, require queries. A query is a set of properties. That set of properties is matched against every component in the world, and only those components matching EVERY property are returned to the results. Queries are composed out of components and then run.
 ** Resource
 A resource is shared data available to multiple systems. The map is a resource. The camera is also a resource. The RNG, again, is a resource.
+* Rust
+** Types
+<This> indicates a /type/ called This.

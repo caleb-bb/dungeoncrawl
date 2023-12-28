@@ -8,7 +8,6 @@ pub struct Camera {
 }
 
 impl Camera {
-    //Initialize a new camera struct.
     pub fn new(player_position: Point) -> Self {
         Self {
             left_x: player_position.x - DISPLAY_WIDTH / 2,
@@ -18,7 +17,6 @@ impl Camera {
         }
     }
 
-    //Notice that we have a mutable reference to self (a camera) here. This ensures that we can mutate each value of the camera struct.
     pub fn on_player_move(&mut self, player_position: Point) {
         self.left_x = player_position.x - DISPLAY_WIDTH / 2;
         self.right_x = player_position.x + DISPLAY_WIDTH / 2;

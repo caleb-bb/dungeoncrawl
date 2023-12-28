@@ -1,12 +1,29 @@
-// Components using the Legion ecs are generally structs, but sometimes enums
 pub use crate::prelude::*;
 
-// ColorPair is a helper class from backet-lib that stores a foreground and background color
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Render {
-    pub color: ColorPair,
-    pub glyph: FontCharType,
+    pub color: ColorPair,    // (1)
+    pub glyph: FontCharType, // (2)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Player;
+pub struct Player; // (3)
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Enemy;
+
+pub fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Point) {
+    ecs.push((
+        Enemy,
+        pos,
+        Render {
+            color: ColorPair::new(WHITE, BLACK),
+            glyph: match rng.range(0, 4) {
+                0 => to_cp437('E'),
+                1 => to_cp437('O'),
+                2 => to_cp437('o'),
+                _ => to_cp437('g'),
+            },
+        },
+    ));
+}
