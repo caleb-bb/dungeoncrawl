@@ -2,6 +2,7 @@ use crate::prelude::*;
 
 #[system]
 #[read_component(WantsToAttack)]
+#[read_component(Player)]
 #[write_component(Health)]
 
 // this grabs all the entities that currently want to attack. Any entity that
@@ -24,6 +25,12 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
         // returns an option that gives us access to the entity and its
         // components. Meanwhile, get_component_mut gives us a mutable reference
         // to the component after we unwrap it.
+        let is_player = ecs
+            .entry_ref(*victim)
+            .unwrap()
+            .get_component::<Player>()
+            .is_ok();
+
         if let Ok(mut health) = ecs
             .entry_mut(*victim)
             .unwrap()
@@ -31,7 +38,7 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
         {
             println!("Health before attack: {}", health.current);
             health.current -= 1;
-            if health.current < 1 {
+            if health.current < 1 && !is_player {
                 //if your HP < 1, you're dead. YOU LOSE. GOOD DAY SIR.
                 commands.remove(*victim);
             }
