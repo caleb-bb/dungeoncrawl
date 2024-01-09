@@ -80,7 +80,9 @@ pub fn player_input(
                 .unwrap()
                 .get_component_mut::<Health>()
             {
+                print!("Old health {}", health.current);
                 health.current = i32::min(health.max, health.current + 1);
+                print!("New health {}", health.current);
             }
         }
 

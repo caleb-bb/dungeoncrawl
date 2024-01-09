@@ -5,20 +5,69 @@ pub struct MapBuilder {
     pub map: Map,
     pub rooms: Vec<Rect>,
     pub player_start: Point,
+    pub amulet_start: Point,
 }
 
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
+        // We can access the maximum possible value of a Rust type by writing
+        // &typename::MAX
+        // Dijkstra maps, as implemented by bracket-lib, assign the maximum value
+        // of f32 to any tile that is unreachable. So we can confirm that a tile
+        // is unreachable by checking if it has that value.
+        const UNREACHABLE: &f32 = &f32::MAX;
         let mut mb = MapBuilder {
             map: Map::new(),
             rooms: Vec::new(),
             player_start: Point::zero(),
+            amulet_start: Point::zero(),
         };
+
+        let dijkstra_map = DijkstraMap::new(
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            &vec![mb.map.point2d_to_index(mb.player_start)],
+            &mb.map,
+            1024.0,
+        );
+
+        // let highest_value = DijkstraMap::new(
+        //     SCREEN_WIDTH,
+        //     SCREEN_HEIGHT,
+        //     &vec![mb.map.point2d_to_index(mb.player_start)],
+        //     &mb.map,
+        //     1024.0,
+        // )
+        // .map
+        // .into_iter()
+        // .max_by(|a, b| a.partial_cmp(b).unwrap())
+        // .unwrap();
+
+        // let printable_map = dijkstra_map
+        //     .map
+        //     .iter()
+        //     .enumerate()
+        //     .filter(|(_, dist)| *dist == UNREACHABLE)
+        //     .collect::<Vec<_>>();
+
+        // print!("the map is: {:?}", printable_map);
+        print!("UNREACHABLE: {:?}", UNREACHABLE.to_string());
+        // print!("highest value: {:?}", highest_value.to_string());
 
         mb.fill(TileType::Wall);
         mb.build_random_rooms(rng);
         mb.build_corridors(rng);
         mb.player_start = mb.rooms[0].center();
+        mb.amulet_start = mb.map.index_to_point2d(
+            dijkstra_map
+                .map
+                .iter()
+                .enumerate()
+                .filter(|(_, dist)| *dist < UNREACHABLE)
+                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+                .unwrap()
+                .0,
+        );
         mb
     }
 
@@ -89,5 +138,3 @@ impl MapBuilder {
         }
     }
 }
-// Possible error in this file - beware!
-// Keep an eye on compilation errors until next clean run...
