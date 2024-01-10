@@ -1,6 +1,6 @@
 use crate::prelude::*;
-const NUM_ROOMS: usize = 20;
 
+const NUM_ROOMS: usize = 20;
 pub struct MapBuilder {
     pub map: Map,
     pub rooms: Vec<Rect>,
@@ -10,18 +10,16 @@ pub struct MapBuilder {
 
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        // We can access the maximum possible value of a Rust type by writing
-        // &typename::MAX
-        // Dijkstra maps, as implemented by bracket-lib, assign the maximum value
-        // of f32 to any tile that is unreachable. So we can confirm that a tile
-        // is unreachable by checking if it has that value.
-        const UNREACHABLE: &f32 = &f32::MAX;
         let mut mb = MapBuilder {
             map: Map::new(),
             rooms: Vec::new(),
             player_start: Point::zero(),
             amulet_start: Point::zero(),
         };
+        mb.fill(TileType::Wall);
+        mb.build_random_rooms(rng);
+        mb.build_corridors(rng);
+        mb.player_start = mb.rooms[0].center();
 
         let dijkstra_map = DijkstraMap::new(
             SCREEN_WIDTH,
@@ -30,44 +28,17 @@ impl MapBuilder {
             &mb.map,
             1024.0,
         );
-
-        // let highest_value = DijkstraMap::new(
-        //     SCREEN_WIDTH,
-        //     SCREEN_HEIGHT,
-        //     &vec![mb.map.point2d_to_index(mb.player_start)],
-        //     &mb.map,
-        //     1024.0,
-        // )
-        // .map
-        // .into_iter()
-        // .max_by(|a, b| a.partial_cmp(b).unwrap())
-        // .unwrap();
-
-        // let printable_map = dijkstra_map
-        //     .map
-        //     .iter()
-        //     .enumerate()
-        //     .filter(|(_, dist)| *dist == UNREACHABLE)
-        //     .collect::<Vec<_>>();
-
-        // print!("the map is: {:?}", printable_map);
-        print!("UNREACHABLE: {:?}", UNREACHABLE.to_string());
-        // print!("highest value: {:?}", highest_value.to_string());
-
-        mb.fill(TileType::Wall);
-        mb.build_random_rooms(rng);
-        mb.build_corridors(rng);
-        mb.player_start = mb.rooms[0].center();
-        mb.amulet_start = mb.map.index_to_point2d(
-            dijkstra_map
-                .map
+        const UNREACHABLE: &f32 = &f32::MAX; // (1)
+        mb.amulet_start = mb.map.index_to_point2d// (2)
+        (
+            dijkstra_map.map
                 .iter()
-                .enumerate()
-                .filter(|(_, dist)| *dist < UNREACHABLE)
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-                .unwrap()
-                .0,
+                .enumerate()// (3)
+                .filter(|(_,dist)| *dist < UNREACHABLE)// (4)
+                .max_by(|a,b| a.1.partial_cmp(b.1).unwrap())// (5)
+                .unwrap().0// (6)
         );
+
         mb
     }
 
@@ -102,18 +73,18 @@ impl MapBuilder {
         }
     }
 
-    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
+    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
         use std::cmp::{max, min};
-        for y in min(y1, y2)..=max(y1, y2) {
+        for x in min(x1, x2)..=max(x1, x2) {
             if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
                 self.map.tiles[idx as usize] = TileType::Floor;
             }
         }
     }
 
-    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
+    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
         use std::cmp::{max, min};
-        for x in min(x1, x2)..=max(x1, x2) {
+        for y in min(y1, y2)..=max(y1, y2) {
             if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
                 self.map.tiles[idx as usize] = TileType::Floor;
             }

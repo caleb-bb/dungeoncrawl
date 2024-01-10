@@ -7,8 +7,10 @@ use crate::prelude::*;
 pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
     // grab anything with a Health component and filter out the ones that also
     // have a Player component. There is, of course, only one of these.
-    let mut player_hp = <&Health>::query().filter(component::<Player>());
+    let mut player_hp = <(&Health, &Point)>::query().filter(component::<Player>());
+    let mut amulet = <&Point>::query().filter(component::<AmuletOfYala>());
     let current_state = turn_state.clone();
+    let amulet_pos = amulet.iter(ecs).nth(0).unwrap();
     let mut new_state = match turn_state {
         TurnState::AwaitingInput => return,
         TurnState::PlayerTurn => TurnState::MonsterTurn,
@@ -16,9 +18,12 @@ pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
         _ => current_state,
     };
 
-    player_hp.iter(ecs).for_each(|hp| {
+    player_hp.iter(ecs).for_each(|(hp, pos)| {
         if hp.current < 1 {
             new_state = TurnState::GameOver;
+        }
+        if pos == amulet_pos {
+            new_state = TurnState::Victory;
         }
     });
     *turn_state = new_state;

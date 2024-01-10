@@ -4,7 +4,7 @@ use crate::prelude::*;
 #[read_component(Point)]
 #[read_component(Player)]
 #[read_component(Enemy)]
-#[read_component(Health)]
+#[write_component(Health)]
 
 pub fn player_input(
     ecs: &mut SubWorld,
@@ -13,8 +13,9 @@ pub fn player_input(
     #[resource] turn_state: &mut TurnState,
 ) {
     let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
+    let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
 
-    if let Some(key) = key {
+    if let Some(key) = *key {
         let delta = match key {
             VirtualKeyCode::Left => Point::new(-1, 0),
             VirtualKeyCode::Right => Point::new(1, 0),
@@ -43,7 +44,6 @@ pub fn player_input(
         // will execute iff an enemy is found on our destination. This loop will
         // push a wantstoattack command against that enemy.
 
-        let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
         let mut did_something = false;
         if delta.x != 0 || delta.y != 0 {
             let mut hit_something = false;
@@ -80,9 +80,7 @@ pub fn player_input(
                 .unwrap()
                 .get_component_mut::<Health>()
             {
-                print!("Old health {}", health.current);
                 health.current = i32::min(health.max, health.current + 1);
-                print!("New health {}", health.current);
             }
         }
 
