@@ -3,6 +3,7 @@ use crate::prelude::*;
 #[system]
 #[read_component(Health)]
 #[read_component(Player)]
+#[read_component(Point)]
 
 pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
     // grab anything with a Health component and filter out the ones that also
