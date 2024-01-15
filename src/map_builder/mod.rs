@@ -1,25 +1,20 @@
 use crate::prelude::*;
+use automata::CellularAutomataArchitect;
 use drunkard::DrunkardsWalkArchitect;
-// use automata::CellularAutomataArchitect;
 // use empty::EmptyArchitect;
-// use rooms::RoomsArchitect;
+use rooms::RoomsArchitect;
 
+mod automata;
 mod drunkard;
-// mod automata;
 // mod empty;
-// mod rooms;
+mod rooms;
 
 // a fn signature in a trait definition defines a function that must be
 // implemented by any type that implements that trait. The function signature
-// specifies arguments, argument types, and type of return value, as well as a
+// specifies arguments,argument types, and type of return value, as well as a
 // function name.
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
-    fn drunkard(&mut self, start: &Point, rng: &mut RandomNumberGenerator, map: &mut Map);
-    // fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map);
-    // fn count_neighbors(&self, x: i32, y: i32, map: &Map) -> usize;
-    // fn find_start(&self, map: &Map) -> Point;
-    // fn iteration(&mut self, map: &mut Map);
 }
 
 // a file named mod.rs can be accessed/imported by other files using the name of
@@ -62,9 +57,18 @@ impl MapBuilder {
         )
     }
 
+    // When something has the type Box<dyn SomeThing>, then it can be anything
+    // that implements the SomeThing trait. Box creates a smart pointer that
+    // takes care of deleting the contained object once the Box itself is
+    // destroyed.
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        let mut architect = DrunkardsWalkArchitect {};
-        architect.new(rng)
+        let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
+            0 => Box::new(DrunkardsWalkArchitect {}),
+            1 => Box::new(RoomsArchitect {}),
+            _ => Box::new(CellularAutomataArchitect {}),
+        };
+        let mut mb = architect.new(rng);
+        mb
     }
 
     fn build_random_rooms(&mut self, rng: &mut RandomNumberGenerator) {

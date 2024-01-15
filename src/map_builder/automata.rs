@@ -23,7 +23,9 @@ impl MapArchitect for CellularAutomataArchitect {
         mb.amulet_start = mb.find_most_distant();
         mb
     }
+}
 
+impl CellularAutomataArchitect {
     fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map) {
         map.tiles.iter_mut().for_each(|t| {
             let roll = rng.range(0, 100);

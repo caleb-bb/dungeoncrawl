@@ -53,7 +53,8 @@ impl MapArchitect for DrunkardsWalkArchitect {
         mb.amulet_start = mb.find_most_distant();
         mb
     }
-
+}
+impl DrunkardsWalkArchitect {
     fn drunkard(&mut self, start: &Point, rng: &mut RandomNumberGenerator, map: &mut Map) {
         let mut drunkard_pos = start.clone();
         let mut distance_staggered = 0;
