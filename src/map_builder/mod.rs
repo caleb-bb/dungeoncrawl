@@ -4,7 +4,7 @@ use automata::CellularAutomataArchitect;
 // use rooms::RoomsArchitect;
 
 mod automata;
-mod empty;
+// mod empty;
 // mod rooms;
 
 // a fn signature in a trait definition defines a function that must be
@@ -13,10 +13,10 @@ mod empty;
 // function name.
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
-    // fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map);
-    // fn count_neighbors(&self, x: i32, y: i32, map: &Map) -> usize;
-    // fn find_start(&self, map: &Map) -> Point;
-    // fn iteration(&mut self, map: &mut Map);
+    fn random_noise_map(&mut self, rng: &mut RandomNumberGenerator, map: &mut Map);
+    fn count_neighbors(&self, x: i32, y: i32, map: &Map) -> usize;
+    fn find_start(&self, map: &Map) -> Point;
+    fn iteration(&mut self, map: &mut Map);
 }
 
 // a file named mod.rs can be accessed/imported by other files using the name of
