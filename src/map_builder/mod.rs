@@ -1,11 +1,16 @@
 use crate::prelude::*;
 use automata::CellularAutomataArchitect;
 use drunkard::DrunkardsWalkArchitect;
+use prefab::apply_prefab;
 // use empty::EmptyArchitect;
 use rooms::RoomsArchitect;
+use themes::DungeonTheme;
+use themes::ForestTheme;
 
 mod automata;
 mod drunkard;
+mod prefab;
+mod themes;
 // mod empty;
 mod rooms;
 
@@ -15,6 +20,13 @@ mod rooms;
 // function name.
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
+}
+
+// The use of Sync + Send here is a CONSTRAINT on the public trait. The presence
+// of Sync + Send here constrains this trait to only be implementable by types
+// that are Sync + Send. The Sync + Send system protects us from race conditions.
+pub trait MapTheme: Sync + Send {
+    fn tile_to_render(&self, tile_type: TileType) -> FontCharType;
 }
 
 // a file named mod.rs can be accessed/imported by other files using the name of
@@ -28,6 +40,7 @@ pub struct MapBuilder {
     pub player_start: Point,
     pub amulet_start: Point,
     pub monster_spawns: Vec<Point>,
+    pub theme: Box<dyn MapTheme>,
 }
 
 impl MapBuilder {
@@ -68,6 +81,11 @@ impl MapBuilder {
             _ => Box::new(CellularAutomataArchitect {}),
         };
         let mut mb = architect.new(rng);
+        apply_prefab(&mut mb, rng);
+        mb.theme = match rng.range(0, 2) {
+            0 => DungeonTheme::new(),
+            _ => ForestTheme::new(),
+        };
         mb
     }
 
