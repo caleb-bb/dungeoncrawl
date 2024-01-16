@@ -7,7 +7,7 @@ use crate::prelude::*;
 // in the scope where the mutable reference occurs
 pub fn spawn_player(ecs: &mut World, pos: Point) {
     ecs.push((
-        Player,
+        Player { map_level: 0 },
         pos,
         Render {
             color: ColorPair::new(WHITE, BLACK),
