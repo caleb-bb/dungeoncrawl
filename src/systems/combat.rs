@@ -4,51 +4,50 @@ use crate::prelude::*;
 #[read_component(WantsToAttack)]
 #[read_component(Player)]
 #[write_component(Health)]
-
-// this grabs all the entities that currently want to attack. Any entity that
-// wants to attack will already have chosen its victim (see player_input for an
-// example), so the victims can be found as a field in the attacking entity's
-// WantsToAttack component, which is a struct
+#[read_component(Damage)]
+#[read_component(Carried)]
 pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
     let mut attackers = <(Entity, &WantsToAttack)>::query();
-
-    let victims: Vec<(Entity, Entity)> = attackers
+    let victims: Vec<(Entity, Entity, Entity)> = attackers
         .iter(ecs)
-        .map(|(entity, attack)| (*entity, attack.victim))
+        .map(|(entity, attack)| (*entity, attack.attacker, attack.victim))
         .collect();
-    // Notice that we create the collection from the iterator first, and only
-    // then do we modify the stuff inside in a separate loop.
 
-    victims.iter().for_each(|(message, victim)| {
-        // this if let creates a mutable health variable only if the victim
-        // actually has sa health component. entry_mut comes from Legion and
-        // returns an option that gives us access to the entity and its
-        // components. Meanwhile, get_component_mut gives us a mutable reference
-        // to the component after we unwrap it.
+    victims.iter().for_each(|(message, attacker, victim)| {
         let is_player = ecs
             .entry_ref(*victim)
             .unwrap()
             .get_component::<Player>()
             .is_ok();
 
+        let base_damage = if let Ok(v) = ecs.entry_ref(*attacker) {
+            if let Ok(dmg) = v.get_component::<Damage>() {
+                dmg.0
+            } else {
+                0
+            }
+        } else {
+            0
+        }; // (1)
+
+        let weapon_damage: i32 = <(&Carried, &Damage)>::query()
+            .iter(ecs)
+            .filter(|(carried, _)| carried.0 == *attacker)
+            .map(|(_, dmg)| dmg.0)
+            .sum(); // (2)
+
+        let final_damage = base_damage + weapon_damage;
+
         if let Ok(mut health) = ecs
             .entry_mut(*victim)
             .unwrap()
             .get_component_mut::<Health>()
         {
-            println!("Health before attack: {}", health.current);
-            health.current -= 1;
+            health.current -= final_damage;
             if health.current < 1 && !is_player {
-                //if your HP < 1, you're dead. YOU LOSE. GOOD DAY SIR.
                 commands.remove(*victim);
             }
         }
-        // We remove the message from the command buffer because we've already executed it.
         commands.remove(*message);
     });
 }
-
-// Note that collect/0 takes the result of map and turns it into a collection.
-// In the let statement, we specified that we wanted a vector of tuples
-// containing Entity, Entity. Because we specified the type, collect knows how
-// to gather up the result of map.
